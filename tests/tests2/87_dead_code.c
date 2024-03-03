@@ -26,6 +26,45 @@ static void kb_wait_1(void)
       timeout--;
   } while (timeout);
 }
+
+static int global;
+
+static void foo(int i)
+{
+  global+=i;
+  printf ("g=%d\n", global);
+}
+
+static int check(void)
+{
+  printf ("check %d\n", global);
+  return 1;
+}
+
+static void dowhile(void)
+{
+  do {
+      foo(1);
+      if (global == 1) {
+	  continue;
+      } else if (global == 2) {
+	  continue;
+      }
+      /* The following break shouldn't disable the check() call,
+         as it's reachable by the continues above.  */
+      break;
+  } while (check());
+}
+
+static void nondead_after_dead_return(void)
+{
+  /* This statement expr is not entered, and hence that fact that it
+     doesn't fall-through should not influence the surrounding code.  */
+  0 && ({ return; 0;});
+  printf ("nondead works\n");
+  return;
+}
+
 int main (void)
 {
   int i = 1;
@@ -118,5 +157,9 @@ enterloop3:
 	  printf ("error4\n");
       }
   }
+
+  dowhile();
+  nondead_after_dead_return();
+
   return 0;
 }
